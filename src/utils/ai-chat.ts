@@ -104,33 +104,43 @@ export const sendChatStream = async (options: ChatStreamOptions): Promise<void> 
     onData: (data: string) => {
       try {
         const parsed = JSON.parse(data);
+        if (parsed.error) {
+          console.error('API返回错误:', parsed.error);
+          onError(new Error(parsed.error.message || '服务器返回错误'));
+          return;
+        }
         if (parsed.choices?.[0]?.delta?.content) {
           currentContent += parsed.choices[0].delta.content;
           onUpdate(currentContent);
         }
-      } catch {
-        console.warn('Failed to parse SSE data:', data);
+      } catch (err) {
+        console.warn('解析SSE数据失败:', data);
       }
     },
     onCompleted: (error?: Error) => {
       if (error) {
+        console.error('流式传输完成时出错:', error);
         onError(error);
       } else {
         onComplete();
       }
     },
     onAborted: () => {
-      console.log('Stream aborted');
+      console.log('流式传输已中止');
     }
   });
 
   try {
-    await ky.post(options.endpoint, {
+    console.log('发送AI请求到:', options.endpoint);
+    console.log('请求头 X-App-Id:', options.apiId);
+    
+    const response = await ky.post(options.endpoint, {
       json: {
         messages: messages.map(msg => ({
           role: msg.role,
           content: msg.content
         })),
+        stream: true,
         enable_thinking: false
       },
       headers: {
@@ -142,9 +152,31 @@ export const sendChatStream = async (options: ChatStreamOptions): Promise<void> 
         afterResponse: [sseHook]
       }
     });
+    
+    console.log('AI请求响应状态:', response.status);
   } catch (error) {
     if (!signal?.aborted) {
-      onError(error as Error);
+      console.error('AI请求失败:', error);
+      
+      if (error instanceof Error) {
+        let errorMessage = error.message;
+        
+        if (errorMessage.includes('fetch')) {
+          errorMessage = '网络连接失败，请检查网络';
+        } else if (errorMessage.includes('timeout')) {
+          errorMessage = '请求超时，请重试';
+        } else if (errorMessage.includes('401')) {
+          errorMessage = '认证失败，请检查配置';
+        } else if (errorMessage.includes('403')) {
+          errorMessage = '无权访问，请检查权限';
+        } else if (errorMessage.includes('500')) {
+          errorMessage = '服务器错误，请稍后重试';
+        }
+        
+        onError(new Error(errorMessage));
+      } else {
+        onError(new Error('未知错误，请重试'));
+      }
     }
   }
 };

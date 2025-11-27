@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import { AirVent } from 'lucide-react';
 
 const APP_ID = import.meta.env.VITE_APP_ID;
-const AI_ENDPOINT = 'https://qianfan.baidubce.com/v2/chat/completions';
+const AI_ENDPOINT = 'https://api-integrations.appmiaoda.com/app-7ua9s9vs9fr5/api-2jBYdN3A9Jyz/v2/chat/completions';
 
 export default function Home() {
   const [imageBase64, setImageBase64] = useState<string>('');
@@ -126,14 +126,16 @@ export default function Home() {
         },
         onError: (error: Error) => {
           setIsAnalyzing(false);
-          toast.error('分析失败，请重试');
+          const errorMessage = error.message || '分析失败，请重试';
+          toast.error(`分析失败: ${errorMessage}`);
           console.error('AI analysis error:', error);
         },
         signal: abortControllerRef.current.signal
       });
     } catch (error) {
       setIsAnalyzing(false);
-      toast.error('分析失败，请重试');
+      const errorMessage = error instanceof Error ? error.message : '未知错误';
+      toast.error(`分析失败: ${errorMessage}`);
       console.error('Analysis error:', error);
     }
   };

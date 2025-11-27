@@ -1,11 +1,14 @@
 import { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ImageUpload } from '@/components/ImageUpload';
 import { ParameterForm, type ParameterFormValues } from '@/components/ParameterForm';
 import { RecommendationResult } from '@/components/RecommendationResult';
+import { ProductCard } from '@/components/ProductCard';
 import { sendChatStream, type ChatMessage } from '@/utils/ai-chat';
+import { getACKnowledgeBase, acProducts, getACTypeName } from '@/data/ac-products';
 import { toast } from 'sonner';
-import { AirVent } from 'lucide-react';
+import { AirVent, BookOpen } from 'lucide-react';
 
 const APP_ID = import.meta.env.VITE_APP_ID;
 const AI_ENDPOINT = 'https://api-integrations.appmiaoda.com/app-7ua9s9vs9fr5/api-2jBYdN3A9Jyz/v2/chat/completions';
@@ -32,10 +35,19 @@ export default function Home() {
 
     abortControllerRef.current = new AbortController();
 
-    let prompt = '请作为一名专业的空调方案顾问，分析这张户型图，并提供详细的空调配置方案。';
+    // 获取空调产品知识库
+    const knowledgeBase = getACKnowledgeBase();
+
+    let prompt = `请作为一名专业的空调方案顾问，分析这张户型图，并根据以下产品知识库提供详细的空调配置方案。
+
+${knowledgeBase}
+
+---
+
+## 用户信息`;
 
     if (values.roomCount) {
-      prompt += `\n房间数量：${values.roomCount}`;
+      prompt += `\n- 房间数量：${values.roomCount}`;
     }
 
     if (values.orientation) {
@@ -49,51 +61,61 @@ export default function Home() {
         northeast: '东北向',
         northwest: '西北向',
       };
-      prompt += `\n主要朝向：${orientationMap[values.orientation] || values.orientation}`;
+      prompt += `\n- 主要朝向：${orientationMap[values.orientation] || values.orientation}`;
     }
 
     if (values.requirements) {
-      prompt += `\n使用需求：${values.requirements}`;
+      prompt += `\n- 使用需求：${values.requirements}`;
     }
 
     prompt += `
 
-请按照以下结构提供推荐方案：
+---
 
-## 户型分析
-- 分析户型的基本结构、面积估算
-- 分析各房间的功能和特点
+## 请按照以下结构提供推荐方案
+
+### 1. 户型分析
+- 分析户型的基本结构、总面积估算
+- 分析各房间的功能、面积和特点
 - 分析朝向对空调需求的影响
 
-## 空调配置方案
-### 推荐型号
-- 为每个房间推荐合适的空调型号（中央空调/分体式空调/风管机等）
-- 说明推荐理由（匹数、能效等级、功能特点）
+### 2. 整体方案建议
+- 推荐整体方案类型（中央空调/风管机+分体式/全分体式）
+- 说明选择该方案的理由
 
-### 数量建议
-- 明确每个房间需要的空调数量
-- 说明配置依据
+### 3. 具体产品推荐
+**重要：必须从上述产品知识库中选择具体的产品型号进行推荐**
 
-### 安装位置建议
-- 为每个房间提供最佳安装位置
-- 说明安装位置的选择理由
+为每个房间推荐具体产品，格式如下：
 
-## 预算估算
-- 提供设备采购预算范围
-- 提供安装费用预算
-- 提供总预算范围
+#### 房间名称（如：主卧）
+- **推荐产品**：品牌 型号（必须从知识库中选择）
+- **匹数**：X匹
+- **适用面积**：X-X㎡
+- **价格**：¥X-X
+- **推荐理由**：说明为什么选择这款产品
+- **安装位置**：具体的安装位置建议
 
-## 注意事项
+### 4. 预算估算
+- 设备采购总预算：¥X-X（列出各产品价格）
+- 安装费用预算：¥X-X
+- 总预算范围：¥X-X
+
+### 5. 注意事项
 - 安装注意事项
 - 使用建议
 - 维护保养建议
 
-请确保方案专业、详细、实用。`;
+**要求**：
+1. 必须从产品知识库中选择真实存在的产品型号
+2. 确保推荐的产品面积范围与房间面积匹配
+3. 考虑用户的预算和使用需求
+4. 提供专业、详细、实用的建议`;
 
     const messages: ChatMessage[] = [
       {
         role: 'system',
-        content: '你是一名专业的空调方案顾问，擅长根据户型图分析并提供个性化的空调配置方案。你的建议应该专业、详细、实用，考虑到用户的实际需求和预算。'
+        content: '你是一名专业的空调方案顾问，擅长根据户型图分析并提供个性化的空调配置方案。你必须根据提供的产品知识库推荐具体的产品型号，确保推荐的产品真实存在且符合用户需求。你的建议应该专业、详细、实用，考虑到用户的实际需求和预算。'
       },
       {
         role: 'user',
@@ -200,6 +222,71 @@ export default function Home() {
               isLoading={isAnalyzing}
             />
           </div>
+        </div>
+
+        <div className="mt-12">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BookOpen className="w-5 h-5 text-primary" />
+                产品知识库
+              </CardTitle>
+              <p className="text-sm text-muted-foreground mt-2">
+                AI将从以下产品中为您推荐最合适的空调方案
+              </p>
+            </CardHeader>
+            <CardContent>
+              <Tabs defaultValue="all" className="w-full">
+                <TabsList className="grid w-full grid-cols-5">
+                  <TabsTrigger value="all">全部</TabsTrigger>
+                  <TabsTrigger value="central">中央空调</TabsTrigger>
+                  <TabsTrigger value="duct">风管机</TabsTrigger>
+                  <TabsTrigger value="split">分体式</TabsTrigger>
+                  <TabsTrigger value="portable">移动空调</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="all" className="mt-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                    {acProducts.map(product => (
+                      <ProductCard key={product.id} product={product} />
+                    ))}
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="central" className="mt-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                    {acProducts.filter(p => p.type === 'central').map(product => (
+                      <ProductCard key={product.id} product={product} />
+                    ))}
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="duct" className="mt-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                    {acProducts.filter(p => p.type === 'duct').map(product => (
+                      <ProductCard key={product.id} product={product} />
+                    ))}
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="split" className="mt-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                    {acProducts.filter(p => p.type === 'split').map(product => (
+                      <ProductCard key={product.id} product={product} />
+                    ))}
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="portable" className="mt-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                    {acProducts.filter(p => p.type === 'portable').map(product => (
+                      <ProductCard key={product.id} product={product} />
+                    ))}
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

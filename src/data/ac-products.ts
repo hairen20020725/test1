@@ -587,3 +587,101 @@ export function getACKnowledgeBase(): string {
 
   return knowledge;
 }
+
+// 从数据库数据生成知识库（用于AI推荐）
+export async function generateKnowledgeBaseFromDB(
+  products: any[],
+  cases: any[]
+): Promise<string> {
+  let knowledge = '# 空调产品知识库和历史案例\n\n';
+  
+  knowledge += '## 一、现有库存产品\n\n';
+  
+  const groupedProducts: Record<string, any[]> = {
+    central: [],
+    duct: [],
+    split: [],
+    portable: []
+  };
+
+  products.forEach(product => {
+    if (groupedProducts[product.type]) {
+      groupedProducts[product.type].push(product);
+    }
+  });
+
+  Object.entries(groupedProducts).forEach(([type, prods]) => {
+    if (prods.length === 0) return;
+    
+    knowledge += `### ${getACTypeName(type as any)}\n\n`;
+    
+    prods.forEach(product => {
+      knowledge += `#### ${product.brand} ${product.model} (产品ID: ${product.id})\n`;
+      knowledge += `- **匹数**: ${product.horsePower}匹\n`;
+      knowledge += `- **适用面积**: ${product.suitableArea.min}-${product.suitableArea.max}㎡\n`;
+      knowledge += `- **能效等级**: ${product.energyLevel}\n`;
+      knowledge += `- **当前售价**: ¥${product.currentPrice.toLocaleString()}`;
+      if (product.originalPrice) {
+        knowledge += ` (原价¥${product.originalPrice.toLocaleString()})`;
+      }
+      knowledge += '\n';
+      knowledge += `- **库存**: ${product.stock}台 ${product.inStock ? '✓有货' : '✗缺货'}\n`;
+      knowledge += `- **制冷量**: ${product.cooling}W | **制热量**: ${product.heating}W\n`;
+      knowledge += `- **噪音**: ${product.noise}dB\n`;
+      knowledge += `- **特点**: ${product.features.join('、')}\n`;
+      knowledge += `- **适用场景**: ${product.bestFor.join('、')}\n`;
+      if (product.promotion) {
+        knowledge += `- **促销信息**: ${product.promotion}\n`;
+      }
+      knowledge += '\n';
+    });
+  });
+
+  knowledge += '\n## 二、历史成功案例\n\n';
+  knowledge += '以下是我们过往完成的真实案例，可作为参考：\n\n';
+
+  cases.forEach((case_, index) => {
+    knowledge += `### 案例${index + 1}: ${case_.title}\n\n`;
+    knowledge += `**户型信息**:\n`;
+    knowledge += `- 面积: ${case_.houseType.area}㎡\n`;
+    knowledge += `- 户型: ${case_.houseType.rooms}\n`;
+    knowledge += `- 朝向: ${case_.houseType.orientation}\n`;
+    knowledge += `- 楼层: ${case_.houseType.floor}层\n`;
+    knowledge += `- 建筑类型: ${case_.houseType.buildingType}\n\n`;
+    
+    knowledge += `**户型描述**: ${case_.description}\n\n`;
+    
+    knowledge += `**解决方案** (${case_.solution.type}):\n`;
+    case_.solution.products.forEach((p: any) => {
+      const product = products.find(prod => prod.id === p.productId);
+      if (product) {
+        knowledge += `- ${p.room}: ${product.brand} ${product.model} × ${p.quantity}台\n`;
+        knowledge += `  安装位置: ${p.installPosition}\n`;
+      }
+    });
+    knowledge += `- 设备费用: ¥${case_.solution.totalCost.toLocaleString()}\n`;
+    knowledge += `- 安装费用: ¥${case_.solution.installCost.toLocaleString()}\n`;
+    knowledge += `- 总费用: ¥${(case_.solution.totalCost + case_.solution.installCost).toLocaleString()}\n\n`;
+    
+    knowledge += `**客户反馈**: ${case_.customerFeedback}\n\n`;
+    
+    knowledge += `**经验总结**:\n`;
+    case_.tips.forEach((tip: string) => {
+      knowledge += `- ${tip}\n`;
+    });
+    knowledge += `\n**完成时间**: ${case_.completedDate}\n\n`;
+    knowledge += '---\n\n';
+  });
+
+  knowledge += '\n## 三、推荐原则\n\n';
+  knowledge += '1. **优先推荐有库存的产品**: 确保方案可立即实施\n';
+  knowledge += '2. **参考历史案例**: 找到相似户型的成功经验\n';
+  knowledge += '3. **面积精准匹配**: 根据房间面积选择合适匹数\n';
+  knowledge += '4. **考虑实际预算**: 在预算范围内选择性价比最高的产品\n';
+  knowledge += '5. **使用场景优化**: 卧室优先静音，客厅优先制冷量，老人房优先健康功能\n';
+  knowledge += '6. **户型适配**: 大户型推荐中央空调，中户型推荐风管机+分体式，小户型推荐全分体式\n';
+  knowledge += '7. **能效优先**: 优先推荐一级能效产品，长期使用更省电\n';
+  knowledge += '8. **关注促销**: 优先推荐有促销活动的产品，为客户节省费用\n';
+
+  return knowledge;
+}

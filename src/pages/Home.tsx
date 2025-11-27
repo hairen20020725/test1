@@ -1,14 +1,18 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ImageUpload } from '@/components/ImageUpload';
 import { ParameterForm, type ParameterFormValues } from '@/components/ParameterForm';
 import { RecommendationResult } from '@/components/RecommendationResult';
 import { ProductCard } from '@/components/ProductCard';
 import { sendChatStream, type ChatMessage } from '@/utils/ai-chat';
-import { getACKnowledgeBase, acProducts, getACTypeName } from '@/data/ac-products';
+import { generateKnowledgeBaseFromDB, getACTypeName } from '@/data/ac-products';
+import { getAllProducts, getAllCases } from '@/db/api';
+import type { ACProduct, HistoricalCase } from '@/types/types';
 import { toast } from 'sonner';
-import { AirVent, BookOpen } from 'lucide-react';
+import { AirVent, BookOpen, Settings } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const APP_ID = import.meta.env.VITE_APP_ID;
 const AI_ENDPOINT = 'https://api-integrations.appmiaoda.com/app-7ua9s9vs9fr5/api-2jBYdN3A9Jyz/v2/chat/completions';
@@ -17,7 +21,25 @@ export default function Home() {
   const [imageBase64, setImageBase64] = useState<string>('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [recommendation, setRecommendation] = useState('');
+  const [products, setProducts] = useState<ACProduct[]>([]);
+  const [cases, setCases] = useState<HistoricalCase[]>([]);
+  const [loading, setLoading] = useState(true);
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    setLoading(true);
+    const [productsData, casesData] = await Promise.all([
+      getAllProducts(),
+      getAllCases()
+    ]);
+    setProducts(productsData);
+    setCases(casesData);
+    setLoading(false);
+  };
 
   const handleImageSelect = (base64: string) => {
     setImageBase64(base64);
@@ -35,8 +57,8 @@ export default function Home() {
 
     abortControllerRef.current = new AbortController();
 
-    // 获取空调产品知识库
-    const knowledgeBase = getACKnowledgeBase();
+    // 从数据库数据生成知识库
+    const knowledgeBase = await generateKnowledgeBaseFromDB(products, cases);
 
     let prompt = `请作为一名专业的空调方案顾问，分析这张户型图，并根据以下产品知识库提供详细的空调配置方案。
 
@@ -177,6 +199,14 @@ ${knowledgeBase}
           <p className="text-muted-foreground max-w-2xl mx-auto">
             上传您的户型图，AI将为您分析并推荐最适合的空调配置方案
           </p>
+          <div className="mt-4">
+            <Link to="/admin">
+              <Button variant="outline" size="sm">
+                <Settings className="w-4 h-4 mr-2" />
+                管理后台
+              </Button>
+            </Link>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
@@ -236,55 +266,61 @@ ${knowledgeBase}
               </p>
             </CardHeader>
             <CardContent>
-              <Tabs defaultValue="all" className="w-full">
-                <TabsList className="grid w-full grid-cols-5">
-                  <TabsTrigger value="all">全部</TabsTrigger>
-                  <TabsTrigger value="central">中央空调</TabsTrigger>
-                  <TabsTrigger value="duct">风管机</TabsTrigger>
-                  <TabsTrigger value="split">分体式</TabsTrigger>
-                  <TabsTrigger value="portable">移动空调</TabsTrigger>
-                </TabsList>
+              {loading ? (
+                <div className="text-center py-12">
+                  <p className="text-muted-foreground">加载产品数据中...</p>
+                </div>
+              ) : (
+                <Tabs defaultValue="all" className="w-full">
+                  <TabsList className="grid w-full grid-cols-5">
+                    <TabsTrigger value="all">全部</TabsTrigger>
+                    <TabsTrigger value="central">中央空调</TabsTrigger>
+                    <TabsTrigger value="duct">风管机</TabsTrigger>
+                    <TabsTrigger value="split">分体式</TabsTrigger>
+                    <TabsTrigger value="portable">移动空调</TabsTrigger>
+                  </TabsList>
 
-                <TabsContent value="all" className="mt-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                    {acProducts.map(product => (
-                      <ProductCard key={product.id} product={product} />
-                    ))}
-                  </div>
-                </TabsContent>
+                  <TabsContent value="all" className="mt-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                      {products.map(product => (
+                        <ProductCard key={product.id} product={product} />
+                      ))}
+                    </div>
+                  </TabsContent>
 
-                <TabsContent value="central" className="mt-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                    {acProducts.filter(p => p.type === 'central').map(product => (
-                      <ProductCard key={product.id} product={product} />
-                    ))}
-                  </div>
-                </TabsContent>
+                  <TabsContent value="central" className="mt-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                      {products.filter(p => p.type === 'central').map(product => (
+                        <ProductCard key={product.id} product={product} />
+                      ))}
+                    </div>
+                  </TabsContent>
 
-                <TabsContent value="duct" className="mt-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                    {acProducts.filter(p => p.type === 'duct').map(product => (
-                      <ProductCard key={product.id} product={product} />
-                    ))}
-                  </div>
-                </TabsContent>
+                  <TabsContent value="duct" className="mt-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                      {products.filter(p => p.type === 'duct').map(product => (
+                        <ProductCard key={product.id} product={product} />
+                      ))}
+                    </div>
+                  </TabsContent>
 
-                <TabsContent value="split" className="mt-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                    {acProducts.filter(p => p.type === 'split').map(product => (
-                      <ProductCard key={product.id} product={product} />
-                    ))}
-                  </div>
-                </TabsContent>
+                  <TabsContent value="split" className="mt-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                      {products.filter(p => p.type === 'split').map(product => (
+                        <ProductCard key={product.id} product={product} />
+                      ))}
+                    </div>
+                  </TabsContent>
 
-                <TabsContent value="portable" className="mt-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                    {acProducts.filter(p => p.type === 'portable').map(product => (
-                      <ProductCard key={product.id} product={product} />
-                    ))}
-                  </div>
-                </TabsContent>
-              </Tabs>
+                  <TabsContent value="portable" className="mt-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                      {products.filter(p => p.type === 'portable').map(product => (
+                        <ProductCard key={product.id} product={product} />
+                      ))}
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              )}
             </CardContent>
           </Card>
         </div>

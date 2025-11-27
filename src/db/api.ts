@@ -114,6 +114,22 @@ export async function getAllCases(): Promise<HistoricalCase[]> {
   return Array.isArray(data) ? data.map(mapCaseFromDB) : [];
 }
 
+// 根据ID获取单个案例
+export async function getCaseById(id: string): Promise<HistoricalCase | null> {
+  const { data, error } = await supabase
+    .from('historical_cases')
+    .select('*')
+    .eq('id', id)
+    .maybeSingle();
+
+  if (error) {
+    console.error('获取案例失败:', error);
+    return null;
+  }
+
+  return data ? mapCaseFromDB(data) : null;
+}
+
 // 根据面积范围获取案例
 export async function getCasesByAreaRange(minArea: number, maxArea: number): Promise<HistoricalCase[]> {
   const { data, error } = await supabase

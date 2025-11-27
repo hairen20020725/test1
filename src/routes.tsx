@@ -2,6 +2,7 @@ import Home from './pages/Home';
 import AdminHome from './pages/admin/AdminHome';
 import ProductManagement from './pages/admin/ProductManagement';
 import CaseManagement from './pages/admin/CaseManagement';
+import CaseForm from './pages/admin/CaseForm';
 import type { ReactNode } from 'react';
 
 interface RouteConfig {
@@ -33,6 +34,18 @@ const routes: RouteConfig[] = [
     name: '案例管理',
     path: '/admin/cases',
     element: <CaseManagement />,
+    visible: false
+  },
+  {
+    name: '添加案例',
+    path: '/admin/case/add',
+    element: <CaseForm />,
+    visible: false
+  },
+  {
+    name: '编辑案例',
+    path: '/admin/case/edit/:id',
+    element: <CaseForm />,
     visible: false
   }
 ];

@@ -1,0 +1,76 @@
+# 智能空调方案推荐工具 - 开发任务清单
+
+## 任务概述
+开发一个基于户型图分析的智能空调方案推荐工具,使用文心一言多模态AI接口进行图像分析和方案生成。
+
+## 开发计划
+
+### 1. 环境准备
+- [x] 检查.env文件中的VITE_APP_ID配置
+- [x] 安装必要依赖：ky, eventsource-parser
+- [x] 检查现有项目结构
+
+### 2. 设计系统配置
+- [x] 更新index.css，定义天空蓝主题配色系统
+- [x] 更新tailwind.config.js，配置设计tokens
+
+### 3. 核心工具函数开发
+- [x] 创建AI接口工具函数（utils/ai-chat.ts）
+  - [x] 实现SSE流式处理
+  - [x] 实现文心一言多模态接口调用
+  - [x] 图片base64转换工具
+
+### 4. 组件开发
+- [x] 创建图片上传组件（components/ImageUpload.tsx）
+  - [x] 支持拖拽上传
+  - [x] 支持点击选择
+  - [x] 图片预览
+  - [x] base64转换
+- [x] 创建参数输入表单（components/ParameterForm.tsx）
+  - [x] 房间数量输入
+  - [x] 房间朝向选择
+  - [x] 使用需求输入
+- [x] 创建结果展示组件（components/RecommendationResult.tsx）
+  - [x] 方案详情展示
+  - [x] 流式内容渲染
+  - [x] 导出功能
+
+### 5. 页面开发
+- [x] 创建主页面（pages/Home.tsx）
+  - [x] 左右分栏布局
+  - [x] 整合所有组件
+  - [x] 响应式设计
+
+### 6. 路由配置
+- [x] 更新routes.tsx配置主页路由
+- [x] 更新App.tsx
+
+### 7. 测试与优化
+- [x] 运行lint检查
+- [x] 修复lint错误（如有）
+- [x] 验证功能完整性
+- [x] 添加Toaster组件到App.tsx
+
+## 开发完成 ✅
+
+所有功能已实现并通过lint检查：
+- ✅ 天空蓝主题配色系统
+- ✅ 图片上传组件（支持拖拽和点击）
+- ✅ 参数输入表单（房间数量、朝向、使用需求）
+- ✅ AI流式分析功能
+- ✅ 结果展示组件（支持Markdown渲染）
+- ✅ 方案导出功能
+- ✅ 响应式布局设计
+
+## 技术栈
+- React + TypeScript
+- Tailwind CSS + shadcn/ui
+- 文心一言多模态AI接口
+- ky (HTTP客户端)
+- eventsource-parser (SSE流式处理)
+
+## 注意事项
+- 不需要Supabase后端（纯前端应用）
+- 图片不需要持久化存储，直接转base64发送给AI
+- 使用流式接口提升用户体验
+- 主色调：天空蓝 #4A90E2

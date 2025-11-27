@@ -39,6 +39,7 @@ export default function CaseForm() {
   const [imagePreview, setImagePreview] = useState<string>('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(isEdit);
+  const [existingImageUrl, setExistingImageUrl] = useState<string>('');
 
   const form = useForm({
     defaultValues: {
@@ -111,6 +112,7 @@ export default function CaseForm() {
         // 设置户型图预览
         if (caseData.floorPlanImage) {
           setImagePreview(caseData.floorPlanImage);
+          setExistingImageUrl(caseData.floorPlanImage);
         }
       }
     } catch (error) {
@@ -186,13 +188,14 @@ export default function CaseForm() {
 
   const onSubmit = async (values: any) => {
     try {
-      // 上传图片（如果有）
-      let imageUrl = null;
+      // 上传图片（如果有新图片）
+      let imageUrl = existingImageUrl; // 默认使用原有图片URL
       if (imageFile) {
-        imageUrl = await uploadImage();
-        if (!imageUrl) {
+        const uploadedUrl = await uploadImage();
+        if (!uploadedUrl) {
           return; // 上传失败，不继续提交
         }
+        imageUrl = uploadedUrl; // 使用新上传的图片URL
       }
 
       // 解析tips（用换行符分隔）

@@ -264,20 +264,20 @@ ${knowledgeBase}
         </div>
 
         {/* 产品知识库入口 */}
-        <div className="mt-12">
+        <div className="mt-8 md:mt-12">
           <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-primary/20 hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/products')}>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
-                    <BookOpen className="w-8 h-8 text-primary" />
+            <CardContent className="pt-4 md:pt-6 pb-4 md:pb-6">
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div className="flex items-start md:items-center gap-3 md:gap-4 flex-1">
+                  <div className="w-12 h-12 md:w-16 md:h-16 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                    <BookOpen className="w-6 h-6 md:w-8 md:h-8 text-primary" />
                   </div>
-                  <div>
-                    <h3 className="text-2xl font-bold mb-2">产品知识库</h3>
-                    <p className="text-muted-foreground">
+                  <div className="flex-1">
+                    <h3 className="text-xl md:text-2xl font-bold mb-1 md:mb-2">产品知识库</h3>
+                    <p className="text-sm md:text-base text-muted-foreground">
                       浏览 <span className="font-semibold text-primary">{products.length}</span> 款空调产品，了解详细参数和特点
                     </p>
-                    <div className="flex gap-4 mt-3 text-sm text-muted-foreground">
+                    <div className="grid grid-cols-2 md:flex md:gap-4 gap-2 mt-2 md:mt-3 text-xs md:text-sm text-muted-foreground">
                       <span>🏢 中央空调 {products.filter(p => p.type === 'central').length}款</span>
                       <span>🌬️ 风管机 {products.filter(p => p.type === 'duct').length}款</span>
                       <span>❄️ 分体式 {products.filter(p => p.type === 'split').length}款</span>
@@ -285,7 +285,7 @@ ${knowledgeBase}
                     </div>
                   </div>
                 </div>
-                <Button size="lg" className="gap-2">
+                <Button size="default" className="gap-2 w-full md:w-auto">
                   查看全部产品
                   <ArrowRight className="w-4 h-4" />
                 </Button>

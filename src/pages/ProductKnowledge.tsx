@@ -88,96 +88,95 @@ export default function ProductKnowledge() {
     <div className="min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-50">
       {/* 顶部导航栏 */}
       <div className="bg-white/80 backdrop-blur-sm border-b sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button 
-                variant="ghost" 
-                onClick={() => navigate('/')}
-                className="gap-2"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                返回首页
-              </Button>
-              <div className="flex items-center gap-2">
-                <BookOpen className="w-6 h-6 text-primary" />
-                <h1 className="text-2xl font-bold">产品知识库</h1>
-              </div>
+        <div className="container mx-auto px-4 py-3 md:py-4">
+          <div className="flex items-center gap-3">
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => navigate('/')}
+              className="gap-1 md:gap-2 px-2 md:px-4"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span className="hidden sm:inline">返回首页</span>
+            </Button>
+            <div className="flex items-center gap-2">
+              <BookOpen className="w-5 h-5 md:w-6 md:h-6 text-primary" />
+              <h1 className="text-lg md:text-2xl font-bold">产品知识库</h1>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-4 md:py-8">
         {/* 统计卡片 */}
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4 mb-6 md:mb-8">
           <Card>
-            <CardContent className="pt-6">
+            <CardContent className="pt-4 md:pt-6 pb-4 md:pb-6">
               <div className="text-center">
-                <div className="text-3xl font-bold text-primary">{stats.total}</div>
-                <div className="text-sm text-muted-foreground mt-1">全部产品</div>
+                <div className="text-2xl md:text-3xl font-bold text-primary">{stats.total}</div>
+                <div className="text-xs md:text-sm text-muted-foreground mt-1">全部产品</div>
               </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="pt-6">
+            <CardContent className="pt-4 md:pt-6 pb-4 md:pb-6">
               <div className="text-center">
-                <div className="text-3xl font-bold text-blue-600">{stats.central}</div>
-                <div className="text-sm text-muted-foreground mt-1">中央空调</div>
+                <div className="text-2xl md:text-3xl font-bold text-blue-600">{stats.central}</div>
+                <div className="text-xs md:text-sm text-muted-foreground mt-1">中央空调</div>
               </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="pt-6">
+            <CardContent className="pt-4 md:pt-6 pb-4 md:pb-6">
               <div className="text-center">
-                <div className="text-3xl font-bold text-green-600">{stats.duct}</div>
-                <div className="text-sm text-muted-foreground mt-1">风管机</div>
+                <div className="text-2xl md:text-3xl font-bold text-green-600">{stats.duct}</div>
+                <div className="text-xs md:text-sm text-muted-foreground mt-1">风管机</div>
               </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="pt-6">
+            <CardContent className="pt-4 md:pt-6 pb-4 md:pb-6">
               <div className="text-center">
-                <div className="text-3xl font-bold text-purple-600">{stats.split}</div>
-                <div className="text-sm text-muted-foreground mt-1">分体式</div>
+                <div className="text-2xl md:text-3xl font-bold text-purple-600">{stats.split}</div>
+                <div className="text-xs md:text-sm text-muted-foreground mt-1">分体式</div>
               </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="pt-6">
+            <CardContent className="pt-4 md:pt-6 pb-4 md:pb-6">
               <div className="text-center">
-                <div className="text-3xl font-bold text-orange-600">{stats.portable}</div>
-                <div className="text-sm text-muted-foreground mt-1">移动空调</div>
+                <div className="text-2xl md:text-3xl font-bold text-orange-600">{stats.portable}</div>
+                <div className="text-xs md:text-sm text-muted-foreground mt-1">移动空调</div>
               </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="pt-6">
+            <CardContent className="pt-4 md:pt-6 pb-4 md:pb-6">
               <div className="text-center">
-                <div className="text-3xl font-bold text-emerald-600">{stats.inStock}</div>
-                <div className="text-sm text-muted-foreground mt-1">有货产品</div>
+                <div className="text-2xl md:text-3xl font-bold text-emerald-600">{stats.inStock}</div>
+                <div className="text-xs md:text-sm text-muted-foreground mt-1">有货产品</div>
               </div>
             </CardContent>
           </Card>
         </div>
 
         {/* 搜索和筛选 */}
-        <Card className="mb-8">
-          <CardContent className="pt-6">
-            <div className="flex flex-col md:flex-row gap-4">
+        <Card className="mb-6 md:mb-8">
+          <CardContent className="pt-4 md:pt-6 pb-4 md:pb-6">
+            <div className="flex flex-col gap-3 md:gap-4">
               {/* 搜索框 */}
-              <div className="flex-1 relative">
+              <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   placeholder="搜索品牌、型号或特点..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 h-10 md:h-11"
                 />
               </div>
 
               {/* 排序选择 */}
-              <div className="w-full md:w-48">
+              <div className="w-full">
                 <Select value={sortBy} onValueChange={setSortBy}>
                   <SelectTrigger>
                     <Filter className="w-4 h-4 mr-2" />
@@ -206,34 +205,44 @@ export default function ProductKnowledge() {
 
         {/* 产品列表 */}
         <Card>
-          <CardHeader>
-            <CardTitle>产品列表</CardTitle>
-            <p className="text-sm text-muted-foreground">
+          <CardHeader className="pb-4 md:pb-6">
+            <CardTitle className="text-lg md:text-xl">产品列表</CardTitle>
+            <p className="text-xs md:text-sm text-muted-foreground">
               浏览我们的空调产品库，找到最适合您的产品
             </p>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-2 md:px-6">
             {loading ? (
               <div className="text-center py-12">
                 <p className="text-muted-foreground">加载产品数据中...</p>
               </div>
             ) : (
               <Tabs value={selectedType} onValueChange={setSelectedType} className="w-full">
-                <TabsList className="grid w-full grid-cols-5 mb-6">
-                  <TabsTrigger value="all">
-                    全部 ({productsByType.all.length})
+                <TabsList className="grid w-full grid-cols-5 mb-4 md:mb-6 h-auto">
+                  <TabsTrigger value="all" className="text-xs md:text-sm px-1 md:px-3 py-2">
+                    <span className="hidden sm:inline">全部</span>
+                    <span className="sm:hidden">全部</span>
+                    <span className="ml-1">({productsByType.all.length})</span>
                   </TabsTrigger>
-                  <TabsTrigger value="central">
-                    中央空调 ({productsByType.central.length})
+                  <TabsTrigger value="central" className="text-xs md:text-sm px-1 md:px-3 py-2">
+                    <span className="hidden sm:inline">中央空调</span>
+                    <span className="sm:hidden">中央</span>
+                    <span className="ml-1">({productsByType.central.length})</span>
                   </TabsTrigger>
-                  <TabsTrigger value="duct">
-                    风管机 ({productsByType.duct.length})
+                  <TabsTrigger value="duct" className="text-xs md:text-sm px-1 md:px-3 py-2">
+                    <span className="hidden sm:inline">风管机</span>
+                    <span className="sm:hidden">风管</span>
+                    <span className="ml-1">({productsByType.duct.length})</span>
                   </TabsTrigger>
-                  <TabsTrigger value="split">
-                    分体式 ({productsByType.split.length})
+                  <TabsTrigger value="split" className="text-xs md:text-sm px-1 md:px-3 py-2">
+                    <span className="hidden sm:inline">分体式</span>
+                    <span className="sm:hidden">分体</span>
+                    <span className="ml-1">({productsByType.split.length})</span>
                   </TabsTrigger>
-                  <TabsTrigger value="portable">
-                    移动空调 ({productsByType.portable.length})
+                  <TabsTrigger value="portable" className="text-xs md:text-sm px-1 md:px-3 py-2">
+                    <span className="hidden sm:inline">移动空调</span>
+                    <span className="sm:hidden">移动</span>
+                    <span className="ml-1">({productsByType.portable.length})</span>
                   </TabsTrigger>
                 </TabsList>
 
@@ -246,7 +255,7 @@ export default function ProductKnowledge() {
                         </p>
                       </div>
                     ) : (
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 px-2 md:px-0">
                         {productsByType[type].map((product) => (
                           <ProductCard key={product.id} product={product} />
                         ))}

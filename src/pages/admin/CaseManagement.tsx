@@ -7,6 +7,7 @@ import { Plus, Pencil, Trash2, Home } from 'lucide-react';
 import { getAllCases, deleteCase } from '@/db/api';
 import type { HistoricalCase } from '@/types/types';
 import { Link } from 'react-router-dom';
+import { AdminProtected } from '@/components/AdminProtected';
 
 export default function CaseManagement() {
   const [cases, setCases] = useState<HistoricalCase[]>([]);
@@ -36,6 +37,7 @@ export default function CaseManagement() {
   };
 
   return (
+    <AdminProtected>
     <div className="min-h-screen bg-secondary/30 p-8">
       <div className="container mx-auto">
         <div className="flex items-center justify-between mb-8">
@@ -117,5 +119,6 @@ export default function CaseManagement() {
         )}
       </div>
     </div>
+    </AdminProtected>
   );
 }

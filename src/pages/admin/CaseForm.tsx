@@ -26,6 +26,7 @@ import { ArrowLeft, Plus, Trash2, Upload, X } from 'lucide-react';
 import { addCase, updateCase, getAllProducts, getCaseById } from '@/db/api';
 import { supabase } from '@/db/supabase';
 import type { ACProduct } from '@/types/types';
+import { AdminProtected } from '@/components/AdminProtected';
 
 const BUCKET_NAME = 'app-7ua9s9vs9fr5_floor_plans';
 
@@ -248,6 +249,7 @@ export default function CaseForm() {
   };
 
   return (
+    <AdminProtected>
     <div className="min-h-screen bg-secondary/30 p-8">
       <div className="container mx-auto max-w-4xl">
         <div className="mb-6">
@@ -698,5 +700,6 @@ export default function CaseForm() {
         )}
       </div>
     </div>
+    </AdminProtected>
   );
 }

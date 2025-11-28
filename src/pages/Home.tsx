@@ -11,8 +11,7 @@ import { generateKnowledgeBaseFromDB, getACTypeName } from '@/data/ac-products';
 import { getAllProducts, getAllCases } from '@/db/api';
 import type { ACProduct, HistoricalCase } from '@/types/types';
 import { toast } from 'sonner';
-import { AirVent, BookOpen, Settings } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { AirVent, BookOpen } from 'lucide-react';
 
 const APP_ID = import.meta.env.VITE_APP_ID;
 const AI_ENDPOINT = 'https://api-integrations.appmiaoda.com/app-7ua9s9vs9fr5/api-2jBYdN3A9Jyz/v2/chat/completions';
@@ -217,14 +216,6 @@ ${knowledgeBase}
           <p className="text-muted-foreground max-w-2xl mx-auto">
             上传您的户型图，AI将为您分析并推荐最适合的空调配置方案
           </p>
-          <div className="mt-4">
-            <Link to="/admin">
-              <Button variant="outline" size="sm">
-                <Settings className="w-4 h-4 mr-2" />
-                管理后台
-              </Button>
-            </Link>
-          </div>
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">

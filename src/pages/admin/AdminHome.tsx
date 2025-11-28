@@ -1,28 +1,46 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Package, FileText, Home, ArrowRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Package, FileText, Home, ArrowRight, LogOut } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { AdminProtected } from '@/components/AdminProtected';
+import { toast } from 'sonner';
 
 export default function AdminHome() {
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    sessionStorage.removeItem('admin_logged_in');
+    sessionStorage.removeItem('admin_login_time');
+    toast.success('已退出登录');
+    navigate('/admin/login');
+  };
+
   return (
-    <div className="min-h-screen bg-secondary/30">
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-4xl font-bold">管理后台</h1>
-              <p className="text-muted-foreground mt-2">
-                管理产品库存和历史案例
-              </p>
+    <AdminProtected>
+      <div className="min-h-screen bg-secondary/30">
+        <div className="container mx-auto px-4 py-8">
+          <div className="mb-8">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-4xl font-bold">管理后台</h1>
+                <p className="text-muted-foreground mt-2">
+                  管理产品库存和历史案例
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <Link to="/">
+                  <Button variant="outline">
+                    <Home className="w-4 h-4 mr-2" />
+                    返回首页
+                  </Button>
+                </Link>
+                <Button variant="outline" onClick={handleLogout}>
+                  <LogOut className="w-4 h-4 mr-2" />
+                  退出登录
+                </Button>
+              </div>
             </div>
-            <Link to="/">
-              <Button variant="outline">
-                <Home className="w-4 h-4 mr-2" />
-                返回首页
-              </Button>
-            </Link>
           </div>
-        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card className="hover:shadow-lg transition-shadow">
@@ -112,5 +130,6 @@ export default function AdminHome() {
         </Card>
       </div>
     </div>
+    </AdminProtected>
   );
 }

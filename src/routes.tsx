@@ -1,4 +1,5 @@
 import Home from './pages/Home';
+import AdminLogin from './pages/AdminLogin';
 import AdminHome from './pages/admin/AdminHome';
 import ProductManagement from './pages/admin/ProductManagement';
 import CaseManagement from './pages/admin/CaseManagement';
@@ -17,6 +18,12 @@ const routes: RouteConfig[] = [
     name: '智能空调方案推荐',
     path: '/',
     element: <Home />
+  },
+  {
+    name: '管理员登录',
+    path: '/admin/login',
+    element: <AdminLogin />,
+    visible: false
   },
   {
     name: '管理后台',

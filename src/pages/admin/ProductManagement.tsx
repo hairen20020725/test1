@@ -31,6 +31,7 @@ import { Plus, Pencil, Trash2, Package } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { getAllProducts, addProduct, updateProduct, deleteProduct } from '@/db/api';
 import type { ACProduct } from '@/types/types';
+import { AdminProtected } from '@/components/AdminProtected';
 
 export default function ProductManagement() {
   const [products, setProducts] = useState<ACProduct[]>([]);
@@ -185,6 +186,7 @@ export default function ProductManagement() {
   };
 
   return (
+    <AdminProtected>
     <div className="min-h-screen bg-secondary/30 p-8">
       <div className="container mx-auto">
         <div className="flex items-center justify-between mb-8">
@@ -538,5 +540,6 @@ export default function ProductManagement() {
         )}
       </div>
     </div>
+    </AdminProtected>
   );
 }

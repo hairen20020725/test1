@@ -1,4 +1,5 @@
 import Home from './pages/Home';
+import ProductKnowledge from './pages/ProductKnowledge';
 import AdminLogin from './pages/AdminLogin';
 import AdminHome from './pages/admin/AdminHome';
 import ProductManagement from './pages/admin/ProductManagement';
@@ -18,6 +19,11 @@ const routes: RouteConfig[] = [
     name: '智能空调方案推荐',
     path: '/',
     element: <Home />
+  },
+  {
+    name: '产品知识库',
+    path: '/products',
+    element: <ProductKnowledge />
   },
   {
     name: '管理员登录',

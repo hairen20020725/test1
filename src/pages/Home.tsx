@@ -1,22 +1,22 @@
 import { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ImageUpload } from '@/components/ImageUpload';
 import { ParameterForm, type ParameterFormValues } from '@/components/ParameterForm';
 import { RecommendationResult } from '@/components/RecommendationResult';
-import { ProductCard } from '@/components/ProductCard';
 import { sendChatStream, type ChatMessage } from '@/utils/ai-chat';
-import { generateKnowledgeBaseFromDB, getACTypeName } from '@/data/ac-products';
+import { generateKnowledgeBaseFromDB } from '@/data/ac-products';
 import { getAllProducts, getAllCases } from '@/db/api';
 import type { ACProduct, HistoricalCase } from '@/types/types';
 import { toast } from 'sonner';
-import { AirVent, BookOpen } from 'lucide-react';
+import { AirVent, BookOpen, ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const APP_ID = import.meta.env.VITE_APP_ID;
 const AI_ENDPOINT = 'https://api-integrations.appmiaoda.com/app-7ua9s9vs9fr5/api-2jBYdN3A9Jyz/v2/chat/completions';
 
 export default function Home() {
+  const navigate = useNavigate();
   const [imageBase64, setImageBase64] = useState<string>('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [recommendation, setRecommendation] = useState('');
@@ -263,73 +263,33 @@ ${knowledgeBase}
           </div>
         </div>
 
+        {/* 产品知识库入口 */}
         <div className="mt-12">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BookOpen className="w-5 h-5 text-primary" />
-                产品知识库
-              </CardTitle>
-              <p className="text-sm text-muted-foreground mt-2">
-                AI将从以下产品中为您推荐最合适的空调方案
-              </p>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <div className="text-center py-12">
-                  <p className="text-muted-foreground">加载产品数据中...</p>
+          <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-primary/20 hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/products')}>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+                    <BookOpen className="w-8 h-8 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold mb-2">产品知识库</h3>
+                    <p className="text-muted-foreground">
+                      浏览 <span className="font-semibold text-primary">{products.length}</span> 款空调产品，了解详细参数和特点
+                    </p>
+                    <div className="flex gap-4 mt-3 text-sm text-muted-foreground">
+                      <span>🏢 中央空调 {products.filter(p => p.type === 'central').length}款</span>
+                      <span>🌬️ 风管机 {products.filter(p => p.type === 'duct').length}款</span>
+                      <span>❄️ 分体式 {products.filter(p => p.type === 'split').length}款</span>
+                      <span>📦 移动空调 {products.filter(p => p.type === 'portable').length}款</span>
+                    </div>
+                  </div>
                 </div>
-              ) : (
-                <Tabs defaultValue="all" className="w-full">
-                  <TabsList className="grid w-full grid-cols-5">
-                    <TabsTrigger value="all">全部</TabsTrigger>
-                    <TabsTrigger value="central">中央空调</TabsTrigger>
-                    <TabsTrigger value="duct">风管机</TabsTrigger>
-                    <TabsTrigger value="split">分体式</TabsTrigger>
-                    <TabsTrigger value="portable">移动空调</TabsTrigger>
-                  </TabsList>
-
-                  <TabsContent value="all" className="mt-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                      {products.map(product => (
-                        <ProductCard key={product.id} product={product} />
-                      ))}
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent value="central" className="mt-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                      {products.filter(p => p.type === 'central').map(product => (
-                        <ProductCard key={product.id} product={product} />
-                      ))}
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent value="duct" className="mt-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                      {products.filter(p => p.type === 'duct').map(product => (
-                        <ProductCard key={product.id} product={product} />
-                      ))}
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent value="split" className="mt-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                      {products.filter(p => p.type === 'split').map(product => (
-                        <ProductCard key={product.id} product={product} />
-                      ))}
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent value="portable" className="mt-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                      {products.filter(p => p.type === 'portable').map(product => (
-                        <ProductCard key={product.id} product={product} />
-                      ))}
-                    </div>
-                  </TabsContent>
-                </Tabs>
-              )}
+                <Button size="lg" className="gap-2">
+                  查看全部产品
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>

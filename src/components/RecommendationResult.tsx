@@ -2,11 +2,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Download, Loader2, Send, Clock } from 'lucide-react';
+import { Download, Loader2, Send, Clock, Copy } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { toast } from 'sonner';
 import { useState } from 'react';
+import { downloadTextFile, copyToClipboard } from '@/utils/download';
 
 // 方案版本接口
 interface RecommendationVersion {
@@ -41,7 +42,7 @@ export function RecommendationResult({
   const currentVersion = versions.find(v => v.id === currentVersionId);
   const hasContent = versions.length > 0 && versions.some(v => v.content);
 
-  const handleExport = () => {
+  const handleExport = async () => {
     if (!currentVersion?.content) {
       toast.error('暂无内容可导出');
       return;
@@ -54,20 +55,33 @@ export function RecommendationResult({
     }
     exportContent += currentVersion.content;
 
-    const blob = new Blob([exportContent], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `空调方案_${currentVersion.title}_${new Date().toLocaleDateString()}.txt`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    toast.success('方案已导出');
-    onExport?.();
+    const filename = `空调方案_${currentVersion.title}_${new Date().toLocaleDateString()}.txt`;
+    
+    // 使用兼容的下载方法
+    const success = await downloadTextFile(exportContent, filename);
+    
+    if (success) {
+      toast.success('方案已导出');
+      onExport?.();
+    } else {
+      // 如果下载失败，提供复制到剪贴板的备选方案
+      toast.error('下载失败，是否复制到剪贴板？', {
+        action: {
+          label: '复制',
+          onClick: async () => {
+            const copied = await copyToClipboard(exportContent);
+            if (copied) {
+              toast.success('已复制到剪贴板');
+            } else {
+              toast.error('复制失败，请手动复制');
+            }
+          }
+        }
+      });
+    }
   };
 
-  const handleExportAll = () => {
+  const handleExportAll = async () => {
     if (versions.length === 0) {
       toast.error('暂无内容可导出');
       return;
@@ -86,17 +100,30 @@ export function RecommendationResult({
       }
     });
 
-    const blob = new Blob([exportContent], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `空调方案_完整历史_${new Date().toLocaleDateString()}.txt`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    toast.success('完整方案已导出');
-    onExport?.();
+    const filename = `空调方案_完整历史_${new Date().toLocaleDateString()}.txt`;
+    
+    // 使用兼容的下载方法
+    const success = await downloadTextFile(exportContent, filename);
+    
+    if (success) {
+      toast.success('完整方案已导出');
+      onExport?.();
+    } else {
+      // 如果下载失败，提供复制到剪贴板的备选方案
+      toast.error('下载失败，是否复制到剪贴板？', {
+        action: {
+          label: '复制',
+          onClick: async () => {
+            const copied = await copyToClipboard(exportContent);
+            if (copied) {
+              toast.success('已复制到剪贴板');
+            } else {
+              toast.error('复制失败，请手动复制');
+            }
+          }
+        }
+      });
+    }
   };
 
   const handleSendMessage = () => {

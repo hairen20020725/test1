@@ -23,6 +23,8 @@ export default function Home() {
   const [products, setProducts] = useState<ACProduct[]>([]);
   const [cases, setCases] = useState<HistoricalCase[]>([]);
   const [loading, setLoading] = useState(true);
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
+  const [initialPrompt, setInitialPrompt] = useState('');
   const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
@@ -43,6 +45,8 @@ export default function Home() {
   const handleImageSelect = (base64: string) => {
     setImageBase64(base64);
     setRecommendation('');
+    setChatHistory([]);
+    setInitialPrompt('');
   };
 
   const handleSubmit = async (values: ParameterFormValues) => {
@@ -146,10 +150,13 @@ ${knowledgeBase}
 6. **库存优先**：优先推荐有库存的产品
 7. **经验传承**：充分利用历史案例的经验总结和客户反馈`;
 
+    // 保存初始prompt用于后续对话
+    setInitialPrompt(prompt);
+
     const messages: ChatMessage[] = [
       {
         role: 'system',
-        content: '你是一名经验丰富的空调方案顾问，擅长根据户型图分析并提供个性化的空调配置方案。你的核心工作方法是：\n\n1. **以历史案例为基础**：优先从历史成功案例中寻找与当前户型相似的案例，参考其解决方案和产品配置\n2. **产品选择原则**：优先推荐历史案例中已验证成功的产品，这些产品有真实的客户反馈和使用经验\n3. **经验传承**：充分利用历史案例的经验总结、客户反馈和注意事项\n4. **真实可靠**：所有推荐的产品必须从知识库中选择，包含正确的产品ID，确保方案可立即实施\n5. **专业详细**：提供专业、详细、实用的建议，考虑用户的实际需求和预算\n\n你的推荐应该让客户感受到这是基于大量成功案例总结出来的成熟方案，而不是临时拼凑的方案。'
+        content: '你是一名经验丰富的空调方案顾问，擅长根据户型图分析并提供个性化的空调配置方案。你的核心工作方法是：\n\n1. **以历史案例为基础**：优先从历史成功案例中寻找与当前户型相似的案例，参考其解决方案和产品配置\n2. **产品选择原则**：优先推荐历史案例中已验证成功的产品，这些产品有真实的客户反馈和使用经验\n3. **经验传承**：充分利用历史案例的经验总结、客户反馈和注意事项\n4. **真实可靠**：所有推荐的产品必须从知识库中选择，包含正确的产品ID，确保方案可立即实施\n5. **专业详细**：提供专业、详细、实用的建议，考虑用户的实际需求和预算\n6. **多轮对话能力**：能够根据客户的反馈和要求，调整和优化推荐方案\n\n你的推荐应该让客户感受到这是基于大量成功案例总结出来的成熟方案，而不是临时拼凑的方案。'
       },
       {
         role: 'user',
@@ -169,15 +176,25 @@ ${knowledgeBase}
     ];
 
     try {
+      let fullResponse = '';
       await sendChatStream({
         endpoint: AI_ENDPOINT,
         apiId: APP_ID,
         messages,
         onUpdate: (content: string) => {
+          fullResponse = content;
           setRecommendation(content);
         },
         onComplete: () => {
           setIsAnalyzing(false);
+          // 保存对话历史
+          setChatHistory([
+            ...messages,
+            {
+              role: 'assistant',
+              content: fullResponse
+            }
+          ]);
           toast.success('方案生成完成');
         },
         onError: (error: Error) => {
@@ -193,6 +210,69 @@ ${knowledgeBase}
       const errorMessage = error instanceof Error ? error.message : '未知错误';
       toast.error(`分析失败: ${errorMessage}`);
       console.error('Analysis error:', error);
+    }
+  };
+
+  // 处理继续对话
+  const handleContinueChat = async (userMessage: string) => {
+    if (!userMessage.trim()) {
+      toast.error('请输入您的要求');
+      return;
+    }
+
+    if (chatHistory.length === 0) {
+      toast.error('请先生成初始方案');
+      return;
+    }
+
+    setIsAnalyzing(true);
+
+    abortControllerRef.current = new AbortController();
+
+    // 构建新的消息
+    const newMessages: ChatMessage[] = [
+      ...chatHistory,
+      {
+        role: 'user',
+        content: userMessage
+      }
+    ];
+
+    try {
+      let fullResponse = '';
+      await sendChatStream({
+        endpoint: AI_ENDPOINT,
+        apiId: APP_ID,
+        messages: newMessages,
+        onUpdate: (content: string) => {
+          fullResponse = content;
+          setRecommendation(prev => prev + '\n\n---\n\n**客户反馈**: ' + userMessage + '\n\n**调整方案**:\n\n' + content);
+        },
+        onComplete: () => {
+          setIsAnalyzing(false);
+          // 更新对话历史
+          setChatHistory([
+            ...newMessages,
+            {
+              role: 'assistant',
+              content: fullResponse
+            }
+          ]);
+          toast.success('方案已更新');
+        },
+        onError: (error: Error) => {
+          setIsAnalyzing(false);
+          const errorMessage = error.message || '调整失败，请重试';
+          toast.error(`调整失败: ${errorMessage}`);
+          console.error('AI chat error:', error);
+        },
+        signal: abortControllerRef.current.signal
+      });
+    } catch (error) {
+      setIsAnalyzing(false);
+      const errorMessage = error instanceof Error ? error.message : '未知错误';
+      toast.error(`调整失败: ${errorMessage}`);
+      console.error('Chat error:', error);
     }
   };
 
@@ -254,6 +334,8 @@ ${knowledgeBase}
             <RecommendationResult
               content={recommendation}
               isLoading={isAnalyzing}
+              onContinueChat={handleContinueChat}
+              hasInitialRecommendation={chatHistory.length > 0}
             />
           </div>
         </div>

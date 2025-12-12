@@ -191,7 +191,7 @@ export function RecommendationResult({
                 <TabsContent 
                   key={version.id} 
                   value={version.id}
-                  className="flex-1 overflow-auto mt-0 px-6 py-4"
+                  className="flex-1 overflow-auto mt-0 px-6 py-4 recommendation-scroll"
                 >
                   {version.userFeedback && (
                     <div className="mb-4 p-3 bg-accent/50 rounded-lg border border-border">

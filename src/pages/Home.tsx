@@ -15,16 +15,26 @@ import { useNavigate } from 'react-router-dom';
 const APP_ID = import.meta.env.VITE_APP_ID;
 const AI_ENDPOINT = 'https://api-integrations.appmiaoda.com/app-7ua9s9vs9fr5/api-2jBYdN3A9Jyz/v2/chat/completions';
 
+// 方案版本接口
+interface RecommendationVersion {
+  id: string;
+  title: string;
+  content: string;
+  userFeedback?: string;
+  timestamp: number;
+}
+
 export default function Home() {
   const navigate = useNavigate();
   const [imageBase64, setImageBase64] = useState<string>('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [recommendation, setRecommendation] = useState('');
   const [products, setProducts] = useState<ACProduct[]>([]);
   const [cases, setCases] = useState<HistoricalCase[]>([]);
   const [loading, setLoading] = useState(true);
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [initialPrompt, setInitialPrompt] = useState('');
+  const [recommendationVersions, setRecommendationVersions] = useState<RecommendationVersion[]>([]);
+  const [currentVersionId, setCurrentVersionId] = useState<string>('');
   const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
@@ -44,9 +54,10 @@ export default function Home() {
 
   const handleImageSelect = (base64: string) => {
     setImageBase64(base64);
-    setRecommendation('');
     setChatHistory([]);
     setInitialPrompt('');
+    setRecommendationVersions([]);
+    setCurrentVersionId('');
   };
 
   const handleSubmit = async (values: ParameterFormValues) => {
@@ -56,7 +67,9 @@ export default function Home() {
     }
 
     setIsAnalyzing(true);
-    setRecommendation('');
+    // 清空之前的版本
+    setRecommendationVersions([]);
+    setCurrentVersionId('');
 
     abortControllerRef.current = new AbortController();
 
@@ -177,13 +190,30 @@ ${knowledgeBase}
 
     try {
       let fullResponse = '';
+      const initialVersionId = `v-${Date.now()}`;
+      
+      // 创建初始版本（用于实时更新）
+      setRecommendationVersions([{
+        id: initialVersionId,
+        title: '初始方案',
+        content: '',
+        timestamp: Date.now()
+      }]);
+      setCurrentVersionId(initialVersionId);
+
       await sendChatStream({
         endpoint: AI_ENDPOINT,
         apiId: APP_ID,
         messages,
         onUpdate: (content: string) => {
           fullResponse = content;
-          setRecommendation(content);
+          // 更新当前版本的内容
+          setRecommendationVersions([{
+            id: initialVersionId,
+            title: '初始方案',
+            content: content,
+            timestamp: Date.now()
+          }]);
         },
         onComplete: () => {
           setIsAnalyzing(false);
@@ -229,9 +259,6 @@ ${knowledgeBase}
 
     abortControllerRef.current = new AbortController();
 
-    // 保存当前的推荐内容
-    const previousRecommendation = recommendation;
-
     // 构建新的消息
     const newMessages: ChatMessage[] = [
       ...chatHistory,
@@ -243,14 +270,35 @@ ${knowledgeBase}
 
     try {
       let fullResponse = '';
+      const newVersionId = `v-${Date.now()}`;
+      const versionNumber = recommendationVersions.length;
+      
+      // 添加新版本（用于实时更新）
+      const newVersion: RecommendationVersion = {
+        id: newVersionId,
+        title: `调整方案 ${versionNumber}`,
+        content: '',
+        userFeedback: userMessage,
+        timestamp: Date.now()
+      };
+      
+      setRecommendationVersions(prev => [...prev, newVersion]);
+      setCurrentVersionId(newVersionId);
+
       await sendChatStream({
         endpoint: AI_ENDPOINT,
         apiId: APP_ID,
         messages: newMessages,
         onUpdate: (content: string) => {
           fullResponse = content;
-          // 重新构建完整的显示内容
-          setRecommendation(previousRecommendation + '\n\n---\n\n**客户反馈**: ' + userMessage + '\n\n**调整方案**:\n\n' + content);
+          // 更新新版本的内容
+          setRecommendationVersions(prev => 
+            prev.map(v => 
+              v.id === newVersionId 
+                ? { ...v, content: content }
+                : v
+            )
+          );
         },
         onComplete: () => {
           setIsAnalyzing(false);
@@ -336,7 +384,9 @@ ${knowledgeBase}
 
           <div className="xl:sticky xl:top-8 h-fit">
             <RecommendationResult
-              content={recommendation}
+              versions={recommendationVersions}
+              currentVersionId={currentVersionId}
+              onVersionChange={setCurrentVersionId}
               isLoading={isAnalyzing}
               onContinueChat={handleContinueChat}
               hasInitialRecommendation={chatHistory.length > 0}

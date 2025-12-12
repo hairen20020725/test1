@@ -21,6 +21,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 
 const formSchema = z.object({
+  totalArea: z.string().optional(),
   roomCount: z.string().optional(),
   orientation: z.string().optional(),
   requirements: z.string().optional(),
@@ -37,6 +38,7 @@ export function ParameterForm({ onSubmit, disabled }: ParameterFormProps) {
   const form = useForm<ParameterFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      totalArea: '',
       roomCount: '',
       orientation: '',
       requirements: '',
@@ -46,6 +48,27 @@ export function ParameterForm({ onSubmit, disabled }: ParameterFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <FormField
+          control={form.control}
+          name="totalArea"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>总面积（可选）</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="例如：120㎡"
+                  {...field}
+                  disabled={disabled}
+                />
+              </FormControl>
+              <p className="text-sm text-muted-foreground">
+                提供准确面积可提高推荐精度
+              </p>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <FormField
           control={form.control}
           name="roomCount"

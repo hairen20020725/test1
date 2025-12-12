@@ -229,6 +229,9 @@ ${knowledgeBase}
 
     abortControllerRef.current = new AbortController();
 
+    // 保存当前的推荐内容
+    const previousRecommendation = recommendation;
+
     // 构建新的消息
     const newMessages: ChatMessage[] = [
       ...chatHistory,
@@ -246,7 +249,8 @@ ${knowledgeBase}
         messages: newMessages,
         onUpdate: (content: string) => {
           fullResponse = content;
-          setRecommendation(prev => prev + '\n\n---\n\n**客户反馈**: ' + userMessage + '\n\n**调整方案**:\n\n' + content);
+          // 重新构建完整的显示内容
+          setRecommendation(previousRecommendation + '\n\n---\n\n**客户反馈**: ' + userMessage + '\n\n**调整方案**:\n\n' + content);
         },
         onComplete: () => {
           setIsAnalyzing(false);
